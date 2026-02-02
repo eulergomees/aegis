@@ -15,7 +15,6 @@ class ImageDataset(Dataset):
     ):
         self.df = pd.read_csv(csv_path)
 
-        # tratar missing
         self.df["age"] = self.df["age"].fillna(self.df["age"].median())
 
         self.img_dirs = img_dirs if isinstance(img_dirs, list) else [img_dirs]
