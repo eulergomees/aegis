@@ -25,7 +25,15 @@ def build_loaders(csv_path, img_dirs, batch_size=32, num_workers=4):
 
     return train_loader, val_loader, base_data.class_names
 
+
 def build_model(num_classes):
     model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
+
+#calculate weights for each class, based on frequency of appearance
+def compute_class_weights(data):
+    counts = data.df["label"].value_counts().sort_index().values
+    weights = 1 / counts
+    weights = weights / weights.sum()
+    return torch.tensor(weights, dtype=torch.float)
