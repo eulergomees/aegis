@@ -55,7 +55,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device):
         loss.backward()
         optimizer.step()
 
-        total_loss = train_loss + loss.item() * inputs.size(0)
+        train_loss = train_loss + loss.item() * inputs.size(0)
         predicted = outputs.argmax(1)
         correct = correct + (predicted == targets).sum().item()
         total = total + inputs.size(0)
@@ -77,7 +77,7 @@ def validate(model, loader, criterion, device):
         outputs = model(inputs)
         loss = criterion(outputs, targets)
 
-        total_loss = val_loss + loss.item() * inputs.size(0)
+        val_loss = val_loss + loss.item() * inputs.size(0)
         predicted = outputs.argmax(1)
         correct = correct + (predicted == targets).sum().item()
         total = total + inputs.size(0)
@@ -108,7 +108,7 @@ def train(csv_path, img_dirs, epochs, batch_size, learning_rate=0.001):
         val_loss, val_acc = validate(model, val_loader, criterion, device)
 
         print(
-            f"Epoch: {epoch:03d}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc * 100:.2f}%, Val Loss: {val_loss:.4f}, Val Acc: {val_acc * 100:.2f}%")
+            f"Epoch: {epoch:03d}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
         if val_acc > best_acc:
             best_acc = val_acc
@@ -124,4 +124,4 @@ if __name__ == "__main__":
         Path("../data/raw/HAM10000_images_part_2"),
     ]
 
-train(csv_path, img_dirs, epochs=10, batch_size=32)
+train(csv_path, img_dirs, epochs=1, batch_size=32)
