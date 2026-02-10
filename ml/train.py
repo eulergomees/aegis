@@ -83,3 +83,45 @@ def validate(model, loader, criterion, device):
         total = total + inputs.size(0)
 
     return val_loss / total, correct / total
+
+
+def train(csv_path, img_dirs, epochs, batch_size, learning_rate=0.001):
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(device)
+
+    train_loader, val_loader, class_names = build_loaders(csv_path, img_dirs, batch_size=batch_size)
+
+    base_data = ImageDataset(csv_path, img_dirs, transform=None)
+    weights = compute_class_weights(base_data).to(device)
+
+    model = build_model(len(class_names)).to(device)
+
+    criterion = nn.CrossEntropyLoss(weight=weights)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    best_acc = 0.0
+    cp_path = Path("checkpoints")
+    cp_path.mkdir(exist_ok=True)
+
+    for epoch in range(1, epochs + 1):
+        train_loss, train_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
+        val_loss, val_acc = validate(model, val_loader, criterion, device)
+
+        print(
+            f"Epoch: {epoch:03d}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc * 100:.2f}%, Val Loss: {val_loss:.4f}, Val Acc: {val_acc * 100:.2f}%")
+
+        if val_acc > best_acc:
+            best_acc = val_acc
+            torch.save(model.state_dict(), cp_path / f"best_model.pth")
+
+        print(f"Best accuracy: ", best_acc)
+
+
+if __name__ == "__main__":
+    csv_path = Path("../data/raw/HAM10000_metadata.csv")
+    img_dirs = [
+        Path("../data/raw/HAM10000_images_part_1"),
+        Path("../data/raw/HAM10000_images_part_2"),
+    ]
+
+train(csv_path, img_dirs, epochs=10, batch_size=32)
