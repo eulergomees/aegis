@@ -31,9 +31,55 @@ def build_model(num_classes):
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
 
-#calculate weights for each class, based on frequency of appearance
+
+# calculate weights for each class, based on frequency of appearance
 def compute_class_weights(data):
     counts = data.df["label"].value_counts().sort_index().values
     weights = 1 / counts
     weights = weights / weights.sum()
     return torch.tensor(weights, dtype=torch.float)
+
+
+def train_one_epoch(model, loader, optimizer, criterion, device):
+    model.train()
+    train_loss = 0
+    correct = 0
+    total = 0
+    for inputs, targets in loader:
+        inputs = inputs.to(device)
+        targets = targets.to(device)
+
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+        loss.backward()
+        optimizer.step()
+
+        total_loss = train_loss + loss.item() * inputs.size(0)
+        predicted = outputs.argmax(1)
+        correct = correct + (predicted == targets).sum().item()
+        total = total + inputs.size(0)
+
+    return train_loss / total, correct / total
+
+
+@torch.no_grad()
+def validate(model, loader, criterion, device):
+    model.eval()
+    val_loss = 0
+    correct = 0
+    total = 0
+
+    for inputs, targets in loader:
+        inputs = inputs.to(device)
+        targets = targets.to(device)
+
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+
+        total_loss = val_loss + loss.item() * inputs.size(0)
+        predicted = outputs.argmax(1)
+        correct = correct + (predicted == targets).sum().item()
+        total = total + inputs.size(0)
+
+    return val_loss / total, correct / total
