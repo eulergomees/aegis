@@ -124,4 +124,4 @@ if __name__ == "__main__":
         Path("../data/raw/HAM10000_images_part_2"),
     ]
 
-train(csv_path, img_dirs, epochs=1, batch_size=32)
+train(csv_path, img_dirs, epochs=100, batch_size=32)
